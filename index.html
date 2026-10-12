@@ -1,0 +1,357 @@
+<title>শব্দ সহায়ক</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Hind+Siliguri:wght@400;500;600&display=swap">
+<style>
+/* Layout: one calm column. A large flash card sits between a tab bar and a control strip. */
+:root {
+  --bg: #eef3f0;
+  --surface: #ffffff;
+  --ink: #12231d;
+  --muted: #5a6e66;
+  --line: #d3dfd9;
+  --accent: #0b6e4f;
+  --accent-ink: #ffffff;
+  --tint: #e0efe8;
+  --live: #d7263d;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Hind Siliguri", "Noto Sans Bengali", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1814; --surface: #16251f; --ink: #e7f1ec; --muted: #93aaa0;
+    --line: #26392f; --accent: #4fd1a1; --accent-ink: #06231a; --tint: #1c3329; --live: #ff6b7d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1814; --surface: #16251f; --ink: #e7f1ec; --muted: #93aaa0;
+  --line: #26392f; --accent: #4fd1a1; --accent-ink: #06231a; --tint: #1c3329; --live: #ff6b7d;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  padding-inline: 16px; padding-block: 20px 40px;
+}
+.app { max-width: 640px; margin-inline: auto; display: flex; flex-direction: column; gap: 16px; }
+header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { font-family: var(--font-body); font-weight: 600; font-size: 1.6rem; margin: 0; letter-spacing: -0.01em; }
+.sub { color: var(--muted); font-size: 0.9rem; }
+.tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: var(--tint); padding: 4px; border-radius: 12px; }
+.tab { font: inherit; font-weight: 500; border: 0; background: transparent; color: var(--muted); padding: 9px 8px; border-radius: 9px; cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+button:focus-visible, select:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.notice { background: var(--tint); border-radius: 10px; padding: 10px 14px; font-size: 0.92rem; }
+.progress { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 0.9rem; }
+.bar { flex: 1; height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 28px 22px; display: flex; flex-direction: column; gap: 18px; min-height: 340px; }
+.word { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.2rem, 9vw, 3.2rem); line-height: 1.1; margin: 0; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.row { display: flex; flex-direction: column; gap: 2px; padding-left: 12px; border-left: 3px solid transparent; min-width: 0; }
+.row.live { border-left-color: var(--live); }
+.label { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+.row p { margin: 0; font-size: 1.08rem; overflow-wrap: anywhere; }
+.row.ex p { font-style: italic; }
+.row.bn p { font-size: 1.2rem; }
+.hidden-hint { color: var(--muted); }
+.live-dot { display: none; width: 8px; height: 8px; border-radius: 50%; background: var(--live); }
+.card.speaking .live-dot { display: inline-block; animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .card.speaking .live-dot { animation: none; } .bar > i { transition: none; } }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.controls { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { font: inherit; font-weight: 500; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 10px 16px; border-radius: 10px; cursor: pointer; min-height: 44px; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); flex: 1; min-width: 120px; font-weight: 600; }
+.btn:disabled { opacity: .5; cursor: default; }
+.settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.settings label { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; color: var(--muted); min-width: 0; }
+.settings label.check { flex-direction: row; align-items: center; gap: 8px; color: var(--ink); }
+select { font: inherit; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); min-width: 0; }
+input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); }
+.voices { font-size: 0.82rem; color: var(--muted); }
+textarea { width: 100%; min-height: 280px; font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 0.85rem; line-height: 1.5; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); resize: vertical; }
+.how { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; font-size: 0.92rem; }
+.how code { font-family: ui-monospace, Consolas, monospace; background: var(--tint); padding: 2px 6px; border-radius: 5px; font-size: 0.85rem; overflow-wrap: anywhere; }
+.how p { margin: 0 0 8px; }
+.status { min-height: 1.4em; font-size: 0.92rem; color: var(--accent); }
+.status.err { color: var(--live); }
+</style>
+
+<main class="app">
+  <header>
+    <h1>শব্দ সহায়ক</h1>
+    <span class="sub">প্রতিদিন শুনুন, প্রতিদিন শিখুন</span>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="মোড">
+    <button class="tab" role="tab" id="tab-listen" aria-selected="true" aria-controls="panel-listen">শুনুন</button>
+    <button class="tab" role="tab" id="tab-card" aria-selected="false" aria-controls="panel-card">কার্ড</button>
+    <button class="tab" role="tab" id="tab-words" aria-selected="false" aria-controls="panel-words">আমার শব্দ</button>
+  </div>
+
+  <div id="sample-note" class="notice" hidden>এগুলো নমুনা শব্দ। নিজের শব্দ যোগ করতে "আমার শব্দ" ট্যাবে যান।</div>
+
+  <!-- শুনুন: auto-play -->
+  <section id="panel-listen" role="tabpanel" aria-labelledby="tab-listen" style="display:flex;flex-direction:column;gap:16px">
+    <div class="progress"><span id="l-count">০ / ০</span><div class="bar"><i id="l-bar"></i></div></div>
+    <div class="card" id="l-card" aria-live="polite"></div>
+    <div class="controls">
+      <button class="btn" id="l-prev" aria-label="আগের শব্দ">আগের</button>
+      <button class="btn primary" id="l-play">চালান</button>
+      <button class="btn" id="l-next" aria-label="পরের শব্দ">পরের</button>
+    </div>
+    <div class="settings">
+      <label for="s-size">আজকের শব্দ সংখ্যা
+        <select id="s-size"><option value="10" selected>১০টি</option><option value="20">২০টি</option><option value="0">সবগুলো</option></select>
+      </label>
+      <label for="s-rate">পড়ার গতি
+        <select id="s-rate"><option value="0.75">ধীর</option><option value="0.9" selected>স্বাভাবিক</option><option value="1.05">দ্রুত</option></select>
+      </label>
+      <label class="check" for="s-bn"><input type="checkbox" id="s-bn" checked> বাংলা অর্থও পড়ুন</label>
+      <label class="check" for="s-shuffle"><input type="checkbox" id="s-shuffle" checked> আজকের জন্য এলোমেলো ক্রম</label>
+      <label class="check" for="s-loop"><input type="checkbox" id="s-loop"> শেষ হলে আবার শুরু</label>
+    </div>
+    <div class="voices" id="voice-info"></div>
+  </section>
+
+  <!-- কার্ড: self-test -->
+  <section id="panel-card" role="tabpanel" aria-labelledby="tab-card" hidden style="display:none;flex-direction:column;gap:16px">
+    <div class="progress"><span id="c-count">০ / ০</span><div class="bar"><i id="c-bar"></i></div></div>
+    <div class="card" id="c-card"></div>
+    <div class="controls">
+      <button class="btn" id="c-prev">আগের</button>
+      <button class="btn primary" id="c-reveal">উত্তর দেখুন</button>
+      <button class="btn" id="c-next">পরের</button>
+    </div>
+    <div class="voices">আগে শব্দটির অর্থ মনে করার চেষ্টা করুন, তারপর "উত্তর দেখুন" চাপুন।</div>
+  </section>
+
+  <!-- আমার শব্দ -->
+  <section id="panel-words" role="tabpanel" aria-labelledby="tab-words" hidden style="display:none;flex-direction:column;gap:16px">
+    <div class="how">
+      <p>প্রতি লাইনে একটি শব্দ লিখুন, ৪টি অংশ <code>|</code> দিয়ে আলাদা করে:</p>
+      <p><code>শব্দ | English meaning | বাংলা অর্থ | English example</code></p>
+      <p>উদাহরণ সবসময় ইংরেজিতে হবে। উদাহরণ ছাড়া শুধু প্রথম ৩টি অংশ দিলেও চলবে।</p>
+    </div>
+    <label for="words-text" class="label">আপনার শব্দের তালিকা</label>
+    <textarea id="words-text" spellcheck="false"></textarea>
+    <div class="controls">
+      <button class="btn primary" id="w-save">সংরক্ষণ করুন</button>
+      <button class="btn" id="w-copy">কপি (ব্যাকআপ)</button>
+      <button class="btn" id="w-reset">নমুনায় ফিরুন</button>
+    </div>
+    <div class="status" id="w-status" role="status"></div>
+    <div class="voices">আপনার শব্দ এই ব্রাউজারেই সংরক্ষিত থাকে। অন্য ফোনে বা ব্রাউজারে ব্যবহার করতে "কপি" করে সেখানে পেস্ট করুন।</div>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var STORE = "shobdo.words.v2";
+  var SAMPLE = [
+    { w: "ephemeral", en: "lasting for a very short time", bn: "ক্ষণস্থায়ী; অল্প সময় টিকে থাকে এমন", ex: "The beauty of cherry blossoms is ephemeral, lasting only a week or two." },
+    { w: "resilient", en: "able to recover quickly from difficulties", bn: "স্থিতিস্থাপক; দ্রুত ঘুরে দাঁড়াতে পারে এমন", ex: "Children are often more resilient than adults expect." },
+    { w: "meticulous", en: "showing great attention to detail; very careful", bn: "খুঁটিনাটিতে অত্যন্ত সতর্ক; নিখুঁত", ex: "She kept meticulous records of every test case." },
+    { w: "candid", en: "honest and direct, even when the truth is uncomfortable", bn: "সরল ও খোলাখুলি; স্পষ্টবাদী", ex: "He gave a candid answer about the project's risks." },
+    { w: "ambiguous", en: "having more than one possible meaning; unclear", bn: "দ্ব্যর্থক; অস্পষ্ট", ex: "The requirement was ambiguous, so we asked the client to clarify." },
+    { w: "pragmatic", en: "dealing with things in a practical, realistic way", bn: "বাস্তবমুখী; ব্যবহারিক", ex: "A pragmatic manager picks the solution that actually works." },
+    { w: "scrutinize", en: "to examine something very carefully", bn: "খুঁটিয়ে পরীক্ষা করা", ex: "Auditors scrutinize every transaction in the report." },
+    { w: "reluctant", en: "unwilling and hesitant to do something", bn: "অনিচ্ছুক; দ্বিধাগ্রস্ত", ex: "He was reluctant to change the plan at the last minute." },
+    { w: "intrigue", en: "to arouse curiosity or interest; fascinate", bn: "কৌতূহল বা আগ্রহ উদ্রেক করা; মুগ্ধ করা", ex: "The mysterious plot of the novel intrigued readers." },
+    { w: "craving", en: "a strong desire or need for something", bn: "অত্যাবশ্যক; কামনা", ex: "She had a craving for chocolate." },
+    { w: "exile", en: "the state of being barred from one's native country", bn: "নির্বাসন; নিজ দেশ থেকে বহিষ্কার করা", ex: "The political leader lived in exile for many years." },
+    { w: "Erratic", en: "lacking consistency or predictability", bn: "অনিয়মিত; অপ্রত্যাশিত", ex: "The company's financial performance has been erratic." },
+    { w: "Futile", en: "incapable of producing any useful result; pointless", bn: "অকার্যকর; বৃথা", ex: "All attempts to fix the old computer were futile." },
+    { w: "Gregarious", en: "fond of company; sociable", bn: "সামাজিক; মেলামেশার পছন্দ", ex: "He was a gregarious person who loved parties." },
+    { w: "Haphazard", en: "lacking any obvious principle of organization", bn: "অবিন্যস্ত; এলোমেলো", ex: "The books were stacked in a haphazard manner." },
+    { w: "Imminent", en: "about to happen; impending", bn: "আসন্ন; শীঘ্রই ঘটতে চলেছে এমন", ex: "The dark clouds signaled that a storm was imminent." },
+    { w: "Juxtapose", en: "to place side by side for comparison or contrast", bn: "পাশাপাশি রাখা তুলনা বা বৈপরীত্যের জন্য", ex: "The exhibition juxtaposed modern art with classical pieces." },
+    { w: "Keen", en: "having or showing eagerness or enthusiasm", bn: "উদ্দীপনা বা আগ্রহ প্রদর্শন করা", ex: "She was keen to learn new languages." },
+    { w: "Lethargic", en: "sluggish and apathetic; lacking energy", bn: "অলস ও উদাসীন; শক্তিহীন", ex: "After the long flight, he felt lethargic and wanted to sleep." },
+    { w: "Mundane", en: "lacking interest or excitement; dull", bn: "সাধারণ; নীরস", ex: "He found his office job mundane and uninspiring." }
+  ];
+
+  var $ = function (s) { return document.querySelector(s); };
+  var bn = function (n) { return Number(n).toLocaleString("bn-BD"); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+
+  /* ---------- storage ---------- */
+  var words = SAMPLE.slice(), usingSample = true;
+  try {
+    var raw = localStorage.getItem(STORE);
+    if (raw) { var p = JSON.parse(raw); if (Array.isArray(p) && p.length) { words = p; usingSample = false; } }
+  } catch (e) {}
+  function persist() { try { localStorage.setItem(STORE, JSON.stringify(words)); return true; } catch (e) { return false; } }
+
+  /* ---------- text <-> words ---------- */
+  function toText(list) { return list.map(function (c) { return [c.w, c.en, c.bn, c.ex || ""].join(" | "); }).join("\n"); }
+  function parseText(text) {
+    var out = [], bad = 0;
+    text.split(/\r?\n/).forEach(function (line) {
+      if (!line.trim()) return;
+      var p = line.split(/\s*\|\s*|\t/).map(function (x) { return x.trim(); });
+      if (p.length < 3 || !p[0] || !p[1] || !p[2]) { bad++; return; }
+      out.push({ w: p[0], en: p[1], bn: p[2], ex: p.slice(3).join(" | ") });
+    });
+    return { list: out, bad: bad };
+  }
+
+  /* ---------- daily queue ---------- */
+  function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  var queue = [];
+  function buildQueue() {
+    var list = words.slice();
+    if ($("#s-shuffle").checked) {
+      var d = new Date(), rng = mulberry32(d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate());
+      for (var i = list.length - 1; i > 0; i--) { var j = Math.floor(rng() * (i + 1)); var t = list[i]; list[i] = list[j]; list[j] = t; }
+    }
+    var n = parseInt($("#s-size").value, 10);
+    queue = n > 0 ? list.slice(0, n) : list;
+  }
+
+  /* ---------- speech ---------- */
+  var synth = window.speechSynthesis, voices = [];
+  function loadVoices() {
+    voices = synth ? synth.getVoices() : [];
+    var en = findVoice("en"), b = findVoice("bn");
+    var info = !synth ? "এই ব্রাউজারে কণ্ঠস্বর সুবিধা নেই। Chrome, Edge বা Safari ব্যবহার করুন।" :
+      "ইংরেজি কণ্ঠ: " + (en ? "পাওয়া গেছে" : "পাওয়া যায়নি") + " · বাংলা কণ্ঠ: " + (b ? "পাওয়া গেছে" : "পাওয়া যায়নি (বাংলা লেখা দেখা যাবে, তবে পড়ে শোনাবে না)");
+    $("#voice-info").textContent = info;
+  }
+  function findVoice(prefix) {
+    var pref = voices.filter(function (v) { return v.lang.toLowerCase().indexOf(prefix) === 0; });
+    if (prefix === "en") { var us = pref.filter(function (v) { return /en[-_]US/i.test(v.lang); }); if (us.length) return us[0]; }
+    return pref[0] || null;
+  }
+  if (synth) { loadVoices(); synth.onvoiceschanged = loadVoices; } else { $("#voice-info").textContent = "এই ব্রাউজারে কণ্ঠস্বর সুবিধা নেই। Chrome, Edge বা Safari ব্যবহার করুন।"; }
+
+  function speak(text, lang) {
+    return new Promise(function (resolve) {
+      if (!synth || !text) return resolve();
+      var u = new SpeechSynthesisUtterance(text), v = findVoice(lang);
+      if (v) { u.voice = v; u.lang = v.lang; } else { u.lang = lang === "bn" ? "bn-BD" : "en-US"; }
+      u.rate = parseFloat($("#s-rate").value);
+      u.onend = resolve; u.onerror = resolve;
+      synth.speak(u);
+    });
+  }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  /* ---------- card markup ---------- */
+  function cardHTML(c, opt) {
+    var hide = opt && opt.hidden;
+    var h = '<div class="card-head"><span class="label">ইংরেজি শব্দ</span><span class="live-dot" title="পড়ছে"></span></div>';
+    h += '<div class="row" data-part="word"><h2 class="word">' + esc(c.w) + '</h2></div>';
+    if (hide) { return h + '<p class="hidden-hint">অর্থ মনে করুন, তারপর উত্তর দেখুন।</p>'; }
+    h += '<div class="row" data-part="en"><span class="label">English meaning</span><p>' + esc(c.en) + '</p></div>';
+    h += '<div class="row bn" data-part="bn"><span class="label">বাংলা অর্থ</span><p>' + esc(c.bn) + '</p></div>';
+    if (c.ex) h += '<div class="row ex" data-part="ex"><span class="label">Example</span><p>' + esc(c.ex) + '</p></div>';
+    return h;
+  }
+  function setPart(name) {
+    document.querySelectorAll("#l-card [data-part]").forEach(function (el) { el.classList.toggle("live", el.getAttribute("data-part") === name); });
+  }
+
+  /* ---------- শুনুন ---------- */
+  var li = 0, playing = false, token = 0;
+  function renderListen() {
+    var c = queue[li];
+    $("#l-card").innerHTML = c ? cardHTML(c) : "";
+    $("#l-card").classList.toggle("speaking", playing);
+    $("#l-count").textContent = bn(queue.length ? li + 1 : 0) + " / " + bn(queue.length);
+    $("#l-bar").style.width = (queue.length ? ((li + 1) / queue.length) * 100 : 0) + "%";
+    $("#l-play").textContent = playing ? "থামান" : "চালান";
+  }
+  function stopPlay() { token++; playing = false; if (synth) synth.cancel(); setPart(""); renderListen(); }
+  async function playFrom(start) {
+    var my = ++token; playing = true; li = start; renderListen();
+    while (token === my) {
+      var c = queue[li];
+      setPart("word"); await speak(c.w, "en"); if (token !== my) return; await sleep(500);
+      setPart("en"); await speak(c.en, "en"); if (token !== my) return; await sleep(400);
+      if ($("#s-bn").checked && findVoice("bn")) { setPart("bn"); await speak(c.bn, "bn"); if (token !== my) return; await sleep(400); }
+      if (c.ex) { setPart("ex"); await speak(c.ex, "en"); if (token !== my) return; }
+      setPart(""); await sleep(1200); if (token !== my) return;
+      if (li >= queue.length - 1) {
+        if ($("#s-loop").checked) { li = 0; renderListen(); continue; }
+        playing = false; renderListen(); return;
+      }
+      li++; renderListen();
+    }
+  }
+  function go(delta) {
+    if (!queue.length) return;
+    var n = Math.min(queue.length - 1, Math.max(0, li + delta));
+    if (playing) { if (synth) { token++; synth.cancel(); } playFrom(n); } else { li = n; renderListen(); }
+  }
+  $("#l-play").addEventListener("click", function () { if (playing) stopPlay(); else playFrom(li); });
+  $("#l-prev").addEventListener("click", function () { go(-1); });
+  $("#l-next").addEventListener("click", function () { go(1); });
+  ["#s-size", "#s-shuffle"].forEach(function (id) {
+    $(id).addEventListener("change", function () { stopPlay(); buildQueue(); li = 0; ci = 0; revealed = false; renderListen(); renderCard(); });
+  });
+
+  /* ---------- কার্ড ---------- */
+  var ci = 0, revealed = false;
+  function renderCard() {
+    var c = queue[ci];
+    $("#c-card").innerHTML = c ? cardHTML(c, { hidden: !revealed }) : "";
+    $("#c-count").textContent = bn(queue.length ? ci + 1 : 0) + " / " + bn(queue.length);
+    $("#c-bar").style.width = (queue.length ? ((ci + 1) / queue.length) * 100 : 0) + "%";
+    $("#c-reveal").textContent = revealed ? "আবার শুনুন" : "উত্তর দেখুন";
+  }
+  $("#c-reveal").addEventListener("click", async function () {
+    var c = queue[ci]; if (!c) return;
+    if (!revealed) { revealed = true; renderCard(); }
+    if (synth) { synth.cancel(); }
+    await speak(c.w, "en"); await sleep(300); await speak(c.en, "en"); await sleep(300); if (c.ex) await speak(c.ex, "en");
+  });
+  function cardMove(d) { if (synth) synth.cancel(); ci = Math.min(queue.length - 1, Math.max(0, ci + d)); revealed = false; renderCard(); }
+  $("#c-prev").addEventListener("click", function () { cardMove(-1); });
+  $("#c-next").addEventListener("click", function () { cardMove(1); });
+
+  /* ---------- আমার শব্দ ---------- */
+  function status(msg, err) { var s = $("#w-status"); s.textContent = msg; s.className = "status" + (err ? " err" : ""); }
+  function refreshNote() { $("#sample-note").hidden = !usingSample; }
+  $("#words-text").value = toText(words);
+  $("#w-save").addEventListener("click", function () {
+    var r = parseText($("#words-text").value);
+    if (!r.list.length) { status("কোনো শব্দ পাওয়া যায়নি। প্রতি লাইনে অন্তত ৩টি অংশ লিখুন (শব্দ | English meaning | বাংলা অর্থ)।", true); return; }
+    stopPlay(); words = r.list; usingSample = false;
+    var ok = persist();
+    buildQueue(); li = 0; ci = 0; revealed = false; renderListen(); renderCard(); refreshNote();
+    status(bn(r.list.length) + "টি শব্দ" + (ok ? " সংরক্ষিত হয়েছে" : " লোড হয়েছে, তবে এই ব্রাউজারে সংরক্ষণ করা গেল না (ব্যাকআপ কপি করে রাখুন)") + (r.bad ? "। " + bn(r.bad) + "টি লাইন বাদ গেছে কারণ ফরম্যাট ঠিক ছিল না।" : "।"), !ok || !!r.bad);
+  });
+  $("#w-copy").addEventListener("click", function () {
+    var ta = $("#words-text");
+    function fallback() { ta.focus(); ta.select(); status("লেখা বাছাই করা হয়েছে। এখন কপি করুন (Ctrl+C বা চেপে ধরে কপি)।"); }
+    try { navigator.clipboard.writeText(ta.value).then(function () { status("তালিকা কপি হয়েছে। কোথাও পেস্ট করে রাখুন।"); }, fallback); } catch (e) { fallback(); }
+  });
+  $("#w-reset").addEventListener("click", function () {
+    stopPlay(); words = SAMPLE.slice(); usingSample = true;
+    try { localStorage.removeItem(STORE); } catch (e) {}
+    $("#words-text").value = toText(words); buildQueue(); li = 0; ci = 0; revealed = false; renderListen(); renderCard(); refreshNote();
+    status("নমুনা শব্দ ফিরে এসেছে।");
+  });
+
+  /* ---------- tabs ---------- */
+  var panels = { listen: $("#panel-listen"), card: $("#panel-card"), words: $("#panel-words") };
+  function showTab(name) {
+    if (name !== "listen") stopPlay();
+    if (synth && name !== "card") synth.cancel();
+    Object.keys(panels).forEach(function (k) {
+      var on = k === name;
+      panels[k].hidden = !on; panels[k].style.display = on ? "flex" : "none";
+      $("#tab-" + k).setAttribute("aria-selected", on ? "true" : "false");
+    });
+  }
+  Object.keys(panels).forEach(function (k) { $("#tab-" + k).addEventListener("click", function () { showTab(k); }); });
+
+  /* ---------- start ---------- */
+  buildQueue(); renderListen(); renderCard(); refreshNote();
+  showTab("listen");
+})();
+</script>
